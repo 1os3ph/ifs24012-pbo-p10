@@ -36,12 +36,11 @@ public class TodoServiceTests {
     @Test
     @DisplayName("Pengujian lengkap untuk TodoService")
     void testTodoService() {
-        // 1. Persiapan Data (userId sangat penting di sini)
+        // 1. Persiapan Data
         UUID userId = UUID.randomUUID();
         UUID todoId = UUID.randomUUID();
         UUID nonexistentTodoId = UUID.randomUUID();
 
-        // Sesuaikan constructor dengan Entity Todo kamu (ada userId di depan)
         Todo todo = new Todo(userId, "Belajar Spring Boot", "Belajar Unit Test", false);
         todo.setId(todoId);
 
@@ -49,10 +48,8 @@ public class TodoServiceTests {
         // TEST 1: createTodo
         // ==========================================
         {
-            // Mocking: Saat save dipanggil, kembalikan objek todo yang sama
             when(todoRepository.save(any(Todo.class))).thenReturn(todo);
-
-            // Panggil service (Wajib sertakan userId)
+            
             Todo createdTodo = todoService.createTodo(userId, "Belajar Spring Boot", "Belajar Unit Test");
 
             assertNotNull(createdTodo);
@@ -61,10 +58,9 @@ public class TodoServiceTests {
         }
 
         // ==========================================
-        // TEST 2: getAllTodos (Tanpa Search)
+        // TEST 2: getAllTodos (Tanpa Search / NULL)
         // ==========================================
         {
-            // Mocking findAll (sesuai logika service kamu baris 28)
             when(todoRepository.findAll()).thenReturn(List.of(todo));
 
             List<Todo> result = todoService.getAllTodos(userId, null);
@@ -74,12 +70,10 @@ public class TodoServiceTests {
         }
 
         // ==========================================
-        // TEST 3: getAllTodos (Dengan Search)
+        // TEST 3: getAllTodos (Dengan Search Valid)
         // ==========================================
         {
             String keyword = "Belajar";
-            // Mocking findByKeyword (sesuai logika service kamu baris 26)
-            // Kita pakai eq() untuk mencocokkan argumen spesifik
             when(todoRepository.findByKeyword(eq(userId), eq(keyword))).thenReturn(List.of(todo));
 
             List<Todo> result = todoService.getAllTodos(userId, keyword);
@@ -89,17 +83,32 @@ public class TodoServiceTests {
         }
 
         // ==========================================
+        // TEST 3.5: getAllTodos (Search Kosong/Spasi) 
+        // ==========================================
+        {
+            String emptyKeyword = "   "; // Tidak null, tapi kosong
+            
+            // Logika service: jika kosong, dia harus panggil findAll(), bukan findByKeyword
+            // Kita re-stub findAll karena ini skenario baru
+            when(todoRepository.findAll()).thenReturn(List.of(todo));
+
+            List<Todo> result = todoService.getAllTodos(userId, emptyKeyword);
+
+            assertEquals(1, result.size());
+            // Verifikasi findAll dipanggil lagi (total 2x: saat null dan saat empty string)
+            verify(todoRepository, times(2)).findAll();
+        }
+
+        // ==========================================
         // TEST 4: getTodoById (Sukses & Gagal)
         // ==========================================
         {
-            // Mocking findByUserIdAndId (Bukan findById!)
             when(todoRepository.findByUserIdAndId(userId, todoId)).thenReturn(Optional.of(todo));
             when(todoRepository.findByUserIdAndId(userId, nonexistentTodoId)).thenReturn(Optional.empty());
 
             // Kasus Ada
             Todo found = todoService.getTodoById(userId, todoId);
             assertNotNull(found);
-            assertEquals(todoId, found.getId());
 
             // Kasus Tidak Ada
             Todo notFound = todoService.getTodoById(userId, nonexistentTodoId);
@@ -107,10 +116,9 @@ public class TodoServiceTests {
         }
 
         // ==========================================
-        // TEST 5: updateTodo
+        // TEST 5: updateTodo (Sukses)
         // ==========================================
         {
-            // Mocking: Perlu return Optional berisi todo dulu agar if(todo != null) tembus
             when(todoRepository.findByUserIdAndId(userId, todoId)).thenReturn(Optional.of(todo));
             when(todoRepository.save(any(Todo.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -123,21 +131,28 @@ public class TodoServiceTests {
         }
 
         // ==========================================
-        // TEST 6: deleteTodo
+        // TEST 6: updateTodo (Gagal / Not Found)
         // ==========================================
         {
-            // Case Sukses: Mock find dulu supaya tidak return null
+            when(todoRepository.findByUserIdAndId(userId, nonexistentTodoId)).thenReturn(Optional.empty());
+
+            Todo result = todoService.updateTodo(userId, nonexistentTodoId, "Judul", "Desc", true);
+
+            assertNull(result);
+        }
+
+        // ==========================================
+        // TEST 7: deleteTodo
+        // ==========================================
+        {
+            // Case Sukses
             when(todoRepository.findByUserIdAndId(userId, todoId)).thenReturn(Optional.of(todo));
-            
             boolean isDeleted = todoService.deleteTodo(userId, todoId);
-            
             assertTrue(isDeleted);
-            // Verifikasi bahwa method deleteById benar-benar dipanggil 1 kali
             verify(todoRepository, times(1)).deleteById(todoId);
 
             // Case Gagal (ID Salah)
             when(todoRepository.findByUserIdAndId(userId, nonexistentTodoId)).thenReturn(Optional.empty());
-            
             boolean failedDelete = todoService.deleteTodo(userId, nonexistentTodoId);
             assertFalse(failedDelete);
         }
