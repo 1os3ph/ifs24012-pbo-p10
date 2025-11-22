@@ -30,6 +30,11 @@ command with open jacoco: `mvn clean test && xdg-open target\site\jacoco\index.h
 
 Command: `mvn spring-boot:run`
 
+Karena konfigurasi password menggunakan *Environment Variable* agar aman, jalankan perintah berikut:
+
+**Windows (PowerShell - Terminal Default VS Code):**
+$env:DB_PASSWORD="password_asli_postgres_saya"; ./mvnw spring-boot:run
+
 URL: http://localhost:8080
 
 ### Menjalankan Test Covertage
