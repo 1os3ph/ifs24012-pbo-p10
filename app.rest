@@ -1,0 +1,104 @@
+## Global Variables
+@BaseUrl = http://localhost:8080/api
+@email = test@delcom.org
+@password = test123456
+
+## Authentication
+## ---------------------------------
+
+# @name PostRegister
+POST {{BaseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "name": "Abdullah Ubaid",
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+###
+
+# @name PostLogin
+POST {{BaseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+###
+
+@bearerToken = Bearer {{PostLogin.response.body.data.authToken}}
+
+## Users
+## ---------------------------------
+
+# @name GetMe
+GET {{BaseUrl}}/users/me
+Authorization: {{bearerToken}}
+###
+
+# @name PutUpdateUser
+PUT {{BaseUrl}}/users/me
+Authorization: {{bearerToken}}
+Content-Type: application/json
+
+{
+    "name": "Abdullah Ubaid Updated",
+    "email": "{{email}}"
+}
+###
+
+# @name PutUpdateUserPassword
+PUT {{BaseUrl}}/users/me/password
+Authorization: {{bearerToken}}
+Content-Type: application/json
+
+{
+    "password": "{{password}}",
+    "newPassword": "{{password}}"
+}
+###
+
+## Todos
+## ---------------------------------
+
+# @name PostTodo
+POST {{BaseUrl}}/todos
+Authorization: {{bearerToken}}
+Content-Type: application/json
+
+{
+    "title": "Belajar PBO Malam Minggu",
+    "description": "Mempelajari dasar-dasar PBO untuk pengembangan aplikasi web."
+}
+###
+
+# @name GetAllTodos
+GET {{BaseUrl}}/todos
+Authorization: {{bearerToken}}
+###
+
+# @name GetAllTodosWithSearch
+GET {{BaseUrl}}/todos?search=Minggu
+Authorization: {{bearerToken}}
+###
+
+## Mengambil ID Todo pertama dari response GetAllTodos
+@todoId = {{GetAllTodos.response.body.data.todos[0].id}}
+
+# @name PutTodoById
+PUT {{BaseUrl}}/todos/{{todoId}}
+Content-Type: application/json
+Authorization: {{bearerToken}}
+
+{
+    "title": "Belajar Spring Boot Lanjutan",
+    "description": "Mempelajari fitur-fitur lanjutan Spring Boot.",
+    "isFinished": true
+}
+###
+
+# @name DeleteTodoById
+DELETE {{BaseUrl}}/todos/{{todoId}}
+Authorization: {{bearerToken}}
+###

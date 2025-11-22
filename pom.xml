@@ -21,10 +21,8 @@
 		<java.version>25</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<!-- Versi plugin yang digunakan -->
 		<maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
 		<maven.jacoco.plugin.version>0.8.14</maven.jacoco.plugin.version>
-		<!-- Versi dependency yang digunakan -->
 		<maven.dependency.mockito.version>5.20.0</maven.dependency.mockito.version>
 		<maven.dependency.jakarta.servlet-api.version>6.1.0</maven.dependency.jakarta.servlet-api.version>
 		<maven.dependency.jjwt.version>0.13.0</maven.dependency.jjwt.version>
@@ -72,6 +70,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Dependency for H2 Database (PENTING UNTUK TEST) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Jakarta Servlet API -->
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
@@ -80,7 +85,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Dependency for Spring Data JPA and PostgreSQL -->
+		<!-- Dependency for Spring Data JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -100,7 +105,6 @@
 			<version>${maven.dependency.jjwt.version}</version>
 		</dependency>
 
-		<!-- Dependency for JWT Implementation -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
@@ -108,7 +112,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Dependency for JWT Jackson Parser -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
@@ -118,6 +121,15 @@
 	</dependencies>
 
 	<build>
+		<!-- ========================================== -->
+		<!-- BAGIAN INI DITAMBAHKAN AGAR CONFIG H2 TERBACA -->
+		<!-- ========================================== -->
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
+
 		<plugins>
 			<!-- Spring Boot Maven Plugin -->
 			<plugin>
@@ -132,7 +144,7 @@
 				</executions>
 			</plugin>
 
-			<!-- dependency plugin tetap jika diperlukan -->
+			<!-- Dependency Plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -145,21 +157,21 @@
 				</executions>
 			</plugin>
 
-			<!-- Surefire plugin untuk menjalankan test -->
+			<!-- Surefire plugin (Test Runner) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven.surefire.plugin.version}</version>
 			</plugin>
 
-			<!-- Plugin untuk membuat laporan HTML dari hasil test -->
+			<!-- Report Plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>${maven.surefire.plugin.version}</version>
 			</plugin>
 
-			<!-- JaCoCo Plugin (coverage) tetap -->
+			<!-- JaCoCo Plugin -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -206,7 +218,6 @@
 					</rules>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
 

@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_DB: db_pbo_app
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
