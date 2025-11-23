@@ -1,140 +1,108 @@
 ## Global Variables
 @BaseUrl = http://localhost:8080/api
+@email = user.cashflow@delcom.org
+@password = password123
 
-## Cash Flow
-## ---------------------------------
-# @name PostCashFlow
-POST {{BaseUrl}}/cash-flows
+## ==========================================
+## 1. AUTHENTICATION (Wajib Jalan Dulu)
+## ==========================================
+
+# @name PostRegister
+POST {{BaseUrl}}/auth/register
 Content-Type: application/json
 
 {
-    "type": "OUTFLOW",
-    "source": "Tabungan Pribadi",
-    "label": "alat-elektronik",
-    "amount": 10000,
-    "description": "Kebutuhan komputer server"
+    "name": "Cash Flow User",
+    "email": "{{email}}",
+    "password": "{{password}}"
 }
 ###
 
-# Response Example: PostCashFlow
+# @name PostLogin
+POST {{BaseUrl}}/auth/login
+Content-Type: application/json
+
 {
-    "status": "success",
-    "message": "Berhasil menambahkan data",
-    "data": {
-        "id": "c700f0d8-82bc-4410-af73-68f8f1f247d1"
-    }
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+###
+
+# Simpan Token ke variabel (Pastikan Login sukses dulu)
+@token = {{PostLogin.response.body.data.authToken}}
+
+## ==========================================
+## 2. CASH FLOW OPERATIONS
+## ==========================================
+
+# @name CreateCashFlow_Pemasukan
+POST {{BaseUrl}}/cash-flows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "type": "IN",
+    "source": "Kantor",
+    "label": "Gaji",
+    "amount": 7500000,
+    "description": "Gaji bulan November 2025"
+}
+###
+
+# @name CreateCashFlow_Pengeluaran
+POST {{BaseUrl}}/cash-flows
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "type": "OUT",
+    "source": "Warung",
+    "label": "Makan",
+    "amount": 25000,
+    "description": "Makan siang nasi padang"
 }
 ###
 
 # @name GetAllCashFlows
 GET {{BaseUrl}}/cash-flows
+Authorization: Bearer {{token}}
 ###
 
-# @name GetAllCashFlowsWithSearch
-GET {{BaseUrl}}/cash-flows?search=Pribadi
-
-# Response Example: GetAllCashFlows && GetAllCashFlowsWithSearch
-{
-    "status": "success",
-    "message": "Berhasil mengambil data",
-    "data": {
-        "cash_flows": [
-            {
-                "id": "c700f0d8-82bc-4410-af73-68f8f1f247d1",
-                "type": "Inflow",
-                "source": "Gaji",
-                "label": "gaji-bulanan",
-                "amount": 400000,
-                "description": "Menerima gaji bulanan dari perusahaan.",
-                "createdAt": "2025-11-05T03:24:31.134753",
-                "updatedAt": "2025-11-05T03:24:31.134753"
-            },
-            {
-                "id": "c700f0d8-82bc-4410-af73-68f8f1f247d2",
-                "type": "Outflow",
-                "source": "cash",
-                "label": "alat-mandi",
-                "amount": 100000,
-                "description": "Membeli kebutuhan alat mandi seperti sabun, odol.",
-                "createdAt": "2025-11-05T03:24:31.134753",
-                "updatedAt": "2025-11-05T03:24:31.134753"
-            },
-        ]
-    }
-}
-###
-
-@cashFlowId = {{GetAllCashFlows.response.body.data.cash_flows[0].id}}
-
-# @name GetCashFlowById
-GET {{BaseUrl}}/cash-flows/{{cashFlowId}}
-###
-
-# Response Example: GetCashFlowById
-{
-    "status": "success",
-    "message": "Berhasil mengambil data",
-    "data": {
-        "cash_flow": {
-            "id": "c700f0d8-82bc-4410-af73-68f8f1f247d1",
-            "type": "Inflow",
-            "source": "Gaji",
-            "label": "gaji-bulanan",
-            "amount": 400000,
-            "description": "Menerima gaji bulanan dari perusahaan.",
-            "createdAt": "2025-11-05T03:24:31.134753",
-            "updatedAt": "2025-11-05T03:24:31.134753"
-        }
-    }
-}
-
+# @name SearchCashFlows
+# Mencari berdasarkan label atau deskripsi
+GET {{BaseUrl}}/cash-flows?search=Gaji
+Authorization: Bearer {{token}}
 ###
 
 # @name GetCashFlowLabels
+# Mendapatkan daftar label unik
 GET {{BaseUrl}}/cash-flows/labels
+Authorization: Bearer {{token}}
 ###
 
-# Response Example: GetCashFlowLabels
-{
-    "status": "success",
-    "message": "Berhasil mengambil data",
-    "data": {
-        "labels": [
-            "gaji-bulanan",
-            "alat-mandi",
-            "alat-elektronik"
-        ]
-    }
-}
+## Mengambil ID dari Cash Flow pertama hasil request GetAllCashFlows
+@cfId = {{GetAllCashFlows.response.body.data.cash_flows[0].id}}
+
+# @name GetCashFlowById
+GET {{BaseUrl}}/cash-flows/{{cfId}}
+Authorization: Bearer {{token}}
 ###
 
-# @name PutCashFlowById
-PUT {{BaseUrl}}/cash-flows/{{cashFlowId}}
+# @name UpdateCashFlow
+PUT {{BaseUrl}}/cash-flows/{{cfId}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "type": "INFLOW",
-    "source": "Freelance Project",
-    "label": "proyek-freelance",
-    "amount": 5000000,
-    "description": "Pendapatan dari proyek freelance pengembangan web."
+    "type": "IN",
+    "source": "Kantor",
+    "label": "Gaji",
+    "amount": 8000000,
+    "description": "Gaji bulan November 2025 (Ada Bonus)"
 }
 ###
 
-# Response Example: PutCashFlowById
-{
-    "status": "success",
-    "message": "Berhasil memperbarui data"
-}
-###
-
-# @name DeleteCashFlowById
-DELETE {{BaseUrl}}/cash-flows/{{cashFlowId}}
-###
-
-# Response Example: DeleteCashFlowById
-{
-    "status": "success",
-    "message": "Berhasil menghapus data"
-}
+# @name DeleteCashFlow
+DELETE {{BaseUrl}}/cash-flows/{{cfId}}
+Authorization: Bearer {{token}}
 ###
